@@ -1,0 +1,15 @@
+{
+  "name": "drew-personal-plugins",
+  "version": "1.0.0",
+  "description": "Drew's personal Claude Cowork plugins",
+  "owner": {
+    "name": "Drew"
+  },
+  "plugins": [
+    {
+      "name": "resume-tailor",
+      "version": "0.1.0",
+      "source": "./resume-tailor"
+    }
+  ]
+}
