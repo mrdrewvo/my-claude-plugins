@@ -1,6 +1,6 @@
 ---
 description: Tailor your resume to a specific job description
-allowed-tools: Read, Write, Glob, WebFetch, WebSearch, mcp__c1fc4002-5f49-5f9d-a4e5-93c4ef5d6a75__google_drive_search, mcp__c1fc4002-5f49-5f9d-a4e5-93c4ef5d6a75__google_drive_fetch, Task
+allowed-tools: Read, Write, Glob, Bash, WebFetch, WebSearch, mcp__c1fc4002-5f49-5f9d-a4e5-93c4ef5d6a75__google_drive_search, mcp__c1fc4002-5f49-5f9d-a4e5-93c4ef5d6a75__google_drive_fetch, Task
 argument-hint: [job-description-url-or-paste-below]
 ---
 
@@ -24,7 +24,7 @@ Once you have the job description, confirm you've captured it by stating the job
 
 ## Phase 2: Load the Experience Vault
 
-Search for a file named `experience-vault.md` in the user's connected folder (look under /sessions/awesome-intelligent-edison/mnt/). Use Glob with pattern `**/experience-vault.md`.
+Search for a file named `experience-vault.md` using Glob with pattern `**/experience-vault.md` (no path prefix — the working directory is the current session folder, which contains the `mnt/` folder).
 
 If found, read it fully — this is the primary source of accomplishments and career history.
 
@@ -38,6 +38,8 @@ Search Google Drive for documents likely to be resumes. Use the google_drive_sea
 `fullText contains 'resume' OR name contains 'resume' OR name contains 'CV'`
 
 Fetch the top 2–3 results using google_drive_fetch. Extract all career history, accomplishments, skills, and job titles from the documents.
+
+**Important — Google Drive file type limitation:** The Drive connector can only read native Google Docs files (not `.md`, `.docx`, `.pdf`, or other uploaded files). If the user mentions a specific resume that doesn't appear in search results, ask them to share the direct Google Drive link (e.g., `https://drive.google.com/file/d/...`). If that file is not a Google Doc, it cannot be fetched — ask the user to paste the content directly into the chat instead.
 
 If no Google Drive connection is available, ask the user: "Do you have any resume files in your folder I can reference? If so, point me to the file name."
 
@@ -117,14 +119,33 @@ Incorporate feedback and revise as needed. Repeat until the user is satisfied.
 
 ## Phase 8: Output Files
 
-Once the user approves the final resume, save three output files to the user's connected folder:
+Once the user approves the final resume, produce all three output files. The outputs folder is at `mnt/outputs/` relative to the current working directory.
 
-1. **Markdown version**: Save as `[Company]-[Role]-Resume.md` in the connected folder (e.g., `Stripe-ProductManager-Resume.md`)
+Use the naming convention `[Company]-[Role]-Resume` (e.g., `Solovis-DirectorAI-Resume`). Keep it short with no spaces.
 
-2. **Word document (.docx)**: Use the docx skill to create a professionally formatted Word document with the same content. Save as `[Company]-[Role]-Resume.docx`. This is the ATS-safe submission format.
+### Step 1: Save the Markdown file
 
-3. **PDF**: Use the pdf skill to produce a clean PDF version. Save as `[Company]-[Role]-Resume.pdf`.
+Use the Write tool to save the final resume as `mnt/outputs/[Company]-[Role]-Resume.md`. This is the source-of-truth file and takes only seconds — do it first.
 
-Tell the user: "Your resume is ready in three formats. Submit the .docx to ATS systems, and the .pdf for email attachments or direct submissions where PDF is requested."
+### Step 2: Create the Word document (.docx)
+
+Read `mnt/.skills/skills/docx/SKILL.md` for formatting instructions, then produce a professionally formatted Word document saved as `mnt/outputs/[Company]-[Role]-Resume.docx`.
+
+This is the primary ATS submission format. Use clean, ATS-safe formatting: standard fonts (Calibri or Arial 10–11pt), clear section headers, no tables, no columns, no text boxes, no graphics.
+
+### Step 3: Create the PDF
+
+Read `mnt/.skills/skills/pdf/SKILL.md` for instructions, then produce a clean PDF saved as `mnt/outputs/[Company]-[Role]-Resume.pdf`.
+
+This is for email attachments and direct submissions where PDF is accepted.
+
+### Step 4: Present all three files
+
+Use the `present_files` tool to share all three files with the user:
+- `mnt/outputs/[Company]-[Role]-Resume.md`
+- `mnt/outputs/[Company]-[Role]-Resume.docx`
+- `mnt/outputs/[Company]-[Role]-Resume.pdf`
+
+Tell the user: "Your resume is ready in three formats — submit the **.docx** to ATS systems, and the **.pdf** for email or direct submissions."
 
 Also offer: "Would you like me to add the accomplishments used here to your experience vault?"
