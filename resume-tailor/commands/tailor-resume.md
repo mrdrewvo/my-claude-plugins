@@ -1,6 +1,6 @@
 ---
 description: Tailor your resume to a specific job description
-allowed-tools: Read, Write, Glob, Bash, WebFetch, WebSearch, mcp__c1fc4002-5f49-5f9d-a4e5-93c4ef5d6a75__google_drive_search, mcp__c1fc4002-5f49-5f9d-a4e5-93c4ef5d6a75__google_drive_fetch, Task
+allowed-tools: Read, Write, Glob, Bash, WebFetch, WebSearch, Task, mcp__cowork__request_cowork_directory, mcp__cowork__present_files
 argument-hint: [job-description-url-or-paste-below]
 ---
 
@@ -26,22 +26,61 @@ Once you have the job description, confirm you've captured it by stating the job
 
 Search for a file named `experience-vault.md` using Glob with pattern `**/experience-vault.md` (no path prefix — the working directory is the current session folder, which contains the `mnt/` folder).
 
-If found, read it fully — this is the primary source of accomplishments and career history.
+If found, copy the file to `/tmp/experience-vault.md` using Bash before reading it (required to avoid FUSE filesystem deadlocks on Google Drive for Desktop files):
+```bash
+cp "PATH_TO_FILE" /tmp/experience-vault.md
+```
+Then read from `/tmp/experience-vault.md`. This is the primary source of accomplishments and career history.
 
 If not found, say: "I didn't find an experience vault yet. I'll work from your source resumes instead. You can build your vault anytime with `/update-profile`."
 
 ---
 
-## Phase 3: Load Source Resumes from Google Drive
+## Phase 3: Load Source Resumes from Local Drive
 
-Search Google Drive for documents likely to be resumes. Use the google_drive_search tool with a query like:
-`fullText contains 'resume' OR name contains 'resume' OR name contains 'CV'`
+The workspace folder (`mnt/`) is the user's Google Drive for Desktop folder synced locally — all file types are accessible directly as a regular filesystem.
 
-Fetch the top 2–3 results using google_drive_fetch. Extract all career history, accomplishments, skills, and job titles from the documents.
+**Step 1 — Find resume files.** Use Glob to search for likely resume files:
+- `mnt/**/*.md` — markdown resumes
+- `mnt/**/*.docx` — Word documents
+- `mnt/**/*.pdf` — PDFs
 
-**Important — Google Drive file type limitation:** The Drive connector can only read native Google Docs files (not `.md`, `.docx`, `.pdf`, or other uploaded files). If the user mentions a specific resume that doesn't appear in search results, ask them to share the direct Google Drive link (e.g., `https://drive.google.com/file/d/...`). If that file is not a Google Doc, it cannot be fetched — ask the user to paste the content directly into the chat instead.
+Look for files with names containing "resume", "cv", or the user's name. Skip any file that looks like an output you already created in a prior run (e.g., files ending in `-Resume.md`).
 
-If no Google Drive connection is available, ask the user: "Do you have any resume files in your folder I can reference? If so, point me to the file name."
+**Step 2 — Read the files.** For each relevant file found:
+
+- **`.md` files**: Copy to `/tmp/` first to avoid FUSE deadlocks, then read:
+  ```bash
+  cp "mnt/path/to/file.md" /tmp/source-resume.md
+  ```
+  Then use the Read tool on `/tmp/source-resume.md`.
+
+- **`.docx` files**: Copy to `/tmp/`, then extract text via Python:
+  ```bash
+  cp "mnt/path/to/file.docx" /tmp/source-resume.docx
+  pip install python-docx --break-system-packages -q
+  python3 -c "
+  import docx
+  doc = docx.Document('/tmp/source-resume.docx')
+  for p in doc.paragraphs:
+      if p.text.strip():
+          print(p.text)
+  "
+  ```
+
+- **`.pdf` files**: Copy to `/tmp/`, then extract text via Python:
+  ```bash
+  cp "mnt/path/to/file.pdf" /tmp/source-resume.pdf
+  pip install pdfplumber --break-system-packages -q
+  python3 -c "
+  import pdfplumber
+  with pdfplumber.open('/tmp/source-resume.pdf') as pdf:
+      for page in pdf.pages:
+          print(page.extract_text() or '')
+  "
+  ```
+
+**If no files are found or the folder isn't mounted yet**, use `mcp__cowork__request_cowork_directory` to ask the user to select their resumes folder, then re-run the Glob search.
 
 Consolidate all experience from the vault + source resumes into a working profile in your context.
 
@@ -119,32 +158,38 @@ Incorporate feedback and revise as needed. Repeat until the user is satisfied.
 
 ## Phase 8: Output Files
 
-Once the user approves the final resume, produce all three output files. The outputs folder is at `mnt/outputs/` relative to the current working directory.
+Once the user approves the final resume, produce all three output files. Save them directly into the workspace folder (`mnt/`) — this is the user's Google Drive folder and is where they'll find the files.
 
 Use the naming convention `[Company]-[Role]-Resume` (e.g., `Solovis-DirectorAI-Resume`). Keep it short with no spaces.
 
 ### Step 1: Save the Markdown file
 
-Use the Write tool to save the final resume as `mnt/outputs/[Company]-[Role]-Resume.md`. This is the source-of-truth file and takes only seconds — do it first.
+Use the Write tool to save the final resume as `mnt/[Company]-[Role]-Resume.md`. This is the source-of-truth file and takes only seconds — do it first.
 
 ### Step 2: Create the Word document (.docx)
 
-Read `mnt/.skills/skills/docx/SKILL.md` for formatting instructions, then produce a professionally formatted Word document saved as `mnt/outputs/[Company]-[Role]-Resume.docx`.
+Read `mnt/.skills/skills/docx/SKILL.md` for formatting instructions, then produce a professionally formatted Word document saved as `mnt/[Company]-[Role]-Resume.docx`.
 
 This is the primary ATS submission format. Use clean, ATS-safe formatting: standard fonts (Calibri or Arial 10–11pt), clear section headers, no tables, no columns, no text boxes, no graphics.
 
 ### Step 3: Create the PDF
 
-Read `mnt/.skills/skills/pdf/SKILL.md` for instructions, then produce a clean PDF saved as `mnt/outputs/[Company]-[Role]-Resume.pdf`.
+Read `mnt/.skills/skills/pdf/SKILL.md` for instructions, then produce a clean PDF saved as `mnt/[Company]-[Role]-Resume.pdf`.
 
 This is for email attachments and direct submissions where PDF is accepted.
+
+**Note on PDF generation:** The `write_pdf` tool cannot write directly to Google Drive mount paths. If it fails with a path error, use `reportlab` via a Python script instead:
+```bash
+pip install reportlab --break-system-packages -q
+python3 /path/to/build-pdf.py
+```
 
 ### Step 4: Present all three files
 
 Use the `present_files` tool to share all three files with the user:
-- `mnt/outputs/[Company]-[Role]-Resume.md`
-- `mnt/outputs/[Company]-[Role]-Resume.docx`
-- `mnt/outputs/[Company]-[Role]-Resume.pdf`
+- `mnt/[Company]-[Role]-Resume.md`
+- `mnt/[Company]-[Role]-Resume.docx`
+- `mnt/[Company]-[Role]-Resume.pdf`
 
 Tell the user: "Your resume is ready in three formats — submit the **.docx** to ATS systems, and the **.pdf** for email or direct submissions."
 
