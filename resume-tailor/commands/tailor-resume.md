@@ -160,21 +160,27 @@ Incorporate feedback and revise as needed. Repeat until the user is satisfied.
 
 Once the user approves the final resume, produce all three output files. Save them directly into the workspace folder (`mnt/`) — this is the user's Google Drive folder and is where they'll find the files.
 
-Use the naming convention `[Company]-[Role]-Resume` (e.g., `Solovis-DirectorAI-Resume`). Keep it short with no spaces.
+**Step 0 — Get today's date** using Bash:
+```bash
+date +%Y.%m.%d
+```
+Use the result as the date prefix (e.g., `2026.02.25`).
+
+Use the naming convention `YYYY.MM.DD [Company]-[Role]-Resume` (e.g., `2026.02.25 Solovis-DirectorAI-Resume`). Keep the company/role slug short with no spaces.
 
 ### Step 1: Save the Markdown file
 
-Use the Write tool to save the final resume as `mnt/[Company]-[Role]-Resume.md`. This is the source-of-truth file and takes only seconds — do it first.
+Use the Write tool to save the final resume as `mnt/YYYY.MM.DD [Company]-[Role]-Resume.md`. This is the source-of-truth file and takes only seconds — do it first.
 
 ### Step 2: Create the Word document (.docx)
 
-Read `mnt/.skills/skills/docx/SKILL.md` for formatting instructions, then produce a professionally formatted Word document saved as `mnt/[Company]-[Role]-Resume.docx`.
+Read `mnt/.skills/skills/docx/SKILL.md` for formatting instructions, then produce a professionally formatted Word document saved as `mnt/YYYY.MM.DD [Company]-[Role]-Resume.docx`.
 
 This is the primary ATS submission format. Use clean, ATS-safe formatting: standard fonts (Calibri or Arial 10–11pt), clear section headers, no tables, no columns, no text boxes, no graphics.
 
 ### Step 3: Create the PDF
 
-Read `mnt/.skills/skills/pdf/SKILL.md` for instructions, then produce a clean PDF saved as `mnt/[Company]-[Role]-Resume.pdf`.
+Read `mnt/.skills/skills/pdf/SKILL.md` for instructions, then produce a clean PDF saved as `mnt/YYYY.MM.DD [Company]-[Role]-Resume.pdf`.
 
 This is for email attachments and direct submissions where PDF is accepted.
 
@@ -187,9 +193,9 @@ python3 /path/to/build-pdf.py
 ### Step 4: Present all three files
 
 Use the `present_files` tool to share all three files with the user:
-- `mnt/[Company]-[Role]-Resume.md`
-- `mnt/[Company]-[Role]-Resume.docx`
-- `mnt/[Company]-[Role]-Resume.pdf`
+- `mnt/YYYY.MM.DD [Company]-[Role]-Resume.md`
+- `mnt/YYYY.MM.DD [Company]-[Role]-Resume.docx`
+- `mnt/YYYY.MM.DD [Company]-[Role]-Resume.pdf`
 
 Tell the user: "Your resume is ready in three formats — submit the **.docx** to ATS systems, and the **.pdf** for email or direct submissions."
 
