@@ -66,6 +66,19 @@ Never hand over a finished resume without a pass of joint review. Ask:
 
 The best resume is one the candidate feels proud to submit.
 
+## Output File Naming Convention
+
+All resume files (PDF, DOCX, or any other format) must be named with the creation date prefix in `YYYY.MM.DD` format, followed by a space and a descriptive name. Use the current date at the time of file generation.
+
+Format: `YYYY.MM.DD <descriptive name>.<ext>`
+
+Examples:
+- `2026.02.25 Drew_Vo_Resume_Glassdoor.pdf`
+- `2026.03.10 Resume | Stripe - Program Manager.docx`
+- `2026.04.01 Resume | Netflix - Human Evaluation PM.pdf`
+
+This applies to every output file saved to the user's folder. Never omit the date prefix.
+
 ## Experience Vault
 
 The experience vault (`experience-vault.md` in the user's connected folder) is a living document that stores structured career history. When reading the vault:
