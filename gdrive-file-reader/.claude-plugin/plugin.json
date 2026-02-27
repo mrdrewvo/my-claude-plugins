@@ -1,0 +1,9 @@
+{
+  "name": "gdrive-file-reader",
+  "version": "0.1.0",
+  "description": "Extends Google Drive to read, search, and extract content from .docx, .pdf, and .md files — not just native Google Docs.",
+  "author": {
+    "name": "Drew Vo"
+  },
+  "keywords": ["google-drive", "docx", "pdf", "markdown", "file-reader"]
+}
