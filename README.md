@@ -7,6 +7,7 @@ Personal Claude Cowork plugin marketplace. Add this repo as a GitHub marketplace
 | Plugin | Version | Description |
 |--------|---------|-------------|
 | [resume-tailor](./resume-tailor/) | 0.1.0 | Tailor your resume for any job — ATS-optimized, recruiter-ready |
+| [gdrive-file-reader](./gdrive-file-reader/) | 0.1.0 | Read .docx, .pdf, and .md files from Google Drive that the native connector doesn't handle well |
 
 ## Adding a New Plugin
 
@@ -51,8 +52,9 @@ my-new-plugin/
   "description": "Drew's personal Claude Cowork plugins",
   "owner": { "name": "Drew" },
   "plugins": [
-    { "name": "resume-tailor",  "version": "0.1.0", "source": "./resume-tailor"  },
-    { "name": "my-new-plugin",  "version": "0.1.0", "source": "./my-new-plugin"  }
+    { "name": "resume-tailor",      "version": "0.1.0", "source": "./resume-tailor"      },
+    { "name": "gdrive-file-reader", "version": "0.1.0", "source": "./gdrive-file-reader" },
+    { "name": "my-new-plugin",      "version": "0.1.0", "source": "./my-new-plugin"      }
   ]
 }
 ```
@@ -61,7 +63,7 @@ my-new-plugin/
 
 1. In Cowork, open **Plugins → Add Marketplace**
 2. Choose **GitHub** as the source
-3. Enter your repo: `your-github-username/my-claude-plugins`
+3. Enter your repo: `mrdrewvo/my-claude-plugins`
 4. All plugins in this repo will appear and can be installed with one click
 
 ## Repo Structure
@@ -69,8 +71,8 @@ my-new-plugin/
 ```
 my-claude-plugins/
 ├── .claude-plugin/
-│   └── marketplace.json     # marketplace registry — update when adding plugins
-├── resume-tailor/           # plugin 1
+│   └── marketplace.json          # marketplace registry — update when adding plugins
+├── resume-tailor/                # plugin 1
 │   ├── .claude-plugin/
 │   │   └── plugin.json
 │   ├── README.md
@@ -83,5 +85,13 @@ my-claude-plugins/
 │           └── references/
 │               ├── ats-optimization.md
 │               └── jd-analysis.md
-└── [future-plugin]/         # drop new plugins here, register in marketplace.json
+├── gdrive-file-reader/           # plugin 2
+│   ├── .claude-plugin/
+│   │   └── plugin.json
+│   ├── README.md
+│   ├── commands/
+│   └── skills/
+│       └── gdrive-file-reader/
+│           └── SKILL.md
+└── [future-plugin]/              # drop new plugins here, register in marketplace.json
 ```
