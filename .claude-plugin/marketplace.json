@@ -1,6 +1,6 @@
 {
   "name": "drew-personal-plugins",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Drew's personal Claude Cowork plugins",
   "owner": {
     "name": "Drew"
@@ -12,9 +12,9 @@
       "source": "./resume-tailor"
     },
     {
-      "name": "gdrive-file-reader",
-      "version": "0.1.0",
-      "source": "./gdrive-file-reader"
+      "name": "gdrive-universal-reader",
+      "version": "1.0.0",
+      "source": "./gdrive-universal-reader"
     }
   ]
 }

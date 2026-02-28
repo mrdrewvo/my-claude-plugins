@@ -61,6 +61,7 @@ Keep it fresh by running `/update-profile` after major career milestones or when
 
 ## Requirements
 
-- **Google Drive** connected (to read your existing resumes)
+- **Google Drive** connected (to read your existing resumes and experience vault)
+- **[gdrive-universal-reader](../gdrive-universal-reader/)** plugin installed (handles .pdf, .docx, and .md files that the native Drive connector can't read)
 - **docx and pdf skills** installed (to generate Word and PDF output files)
 - Your connected folder selected in Cowork (for vault and output storage)

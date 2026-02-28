@@ -7,14 +7,14 @@ Personal Claude Cowork plugin marketplace. Add this repo as a GitHub marketplace
 | Plugin | Version | Description |
 |--------|---------|-------------|
 | [resume-tailor](./resume-tailor/) | 0.1.1 | Tailor your resume for any job — ATS-optimized, recruiter-ready |
-| [gdrive-file-reader](./gdrive-file-reader/) | 0.1.0 | Read .docx, .pdf, and .md files from Google Drive that the native connector doesn't handle well |
+| [gdrive-universal-reader](./gdrive-universal-reader/) | 1.0.0 | Read any file from Google Drive — .md, .pdf, .docx, or native Google Docs |
 
 ## Adding a New Plugin
 
 1. Create a new folder at the repo root: `mkdir my-new-plugin`
 2. Add the required files (see structure below)
 3. Register it in `.claude-plugin/marketplace.json` by adding an entry to the `plugins` array
-4. Bump the marketplace `version` (e.g. `1.0.0` → `1.1.0`)
+4. Bump the marketplace `version` (e.g. `1.1.0` → `1.2.0`)
 5. Commit and push — all your machines pick it up on next sync
 
 ### Minimum plugin structure
@@ -48,13 +48,13 @@ my-new-plugin/
 ```json
 {
   "name": "drew-personal-plugins",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Drew's personal Claude Cowork plugins",
   "owner": { "name": "Drew" },
   "plugins": [
-    { "name": "resume-tailor",      "version": "0.1.0", "source": "./resume-tailor"      },
-    { "name": "gdrive-file-reader", "version": "0.1.0", "source": "./gdrive-file-reader" },
-    { "name": "my-new-plugin",      "version": "0.1.0", "source": "./my-new-plugin"      }
+    { "name": "resume-tailor",           "version": "0.1.1", "source": "./resume-tailor"           },
+    { "name": "gdrive-universal-reader", "version": "1.0.0", "source": "./gdrive-universal-reader" },
+    { "name": "my-new-plugin",           "version": "0.1.0", "source": "./my-new-plugin"           }
   ]
 }
 ```
@@ -71,8 +71,8 @@ my-new-plugin/
 ```
 my-claude-plugins/
 ├── .claude-plugin/
-│   └── marketplace.json          # marketplace registry — update when adding plugins
-├── resume-tailor/                # plugin 1
+│   └── marketplace.json              # marketplace registry — update when adding plugins
+├── resume-tailor/                    # plugin 1
 │   ├── .claude-plugin/
 │   │   └── plugin.json
 │   ├── README.md
@@ -85,13 +85,14 @@ my-claude-plugins/
 │           └── references/
 │               ├── ats-optimization.md
 │               └── jd-analysis.md
-├── gdrive-file-reader/           # plugin 2
+├── gdrive-universal-reader/          # plugin 2
 │   ├── .claude-plugin/
 │   │   └── plugin.json
 │   ├── README.md
-│   ├── commands/
 │   └── skills/
-│       └── gdrive-file-reader/
-│           └── SKILL.md
-└── [future-plugin]/              # drop new plugins here, register in marketplace.json
+│       └── gdrive-universal-reader/
+│           ├── SKILL.md
+│           └── references/
+│               └── mime-types.md
+└── [future-plugin]/                  # drop new plugins here, register in marketplace.json
 ```
