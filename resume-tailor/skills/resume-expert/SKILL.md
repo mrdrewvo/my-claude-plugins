@@ -81,7 +81,13 @@ This applies to every output file saved to the user's folder. Never omit the dat
 
 ## Experience Vault
 
-The experience vault (`experience-vault.md` in the user's connected folder) is a living document that stores structured career history. When reading the vault:
+The experience vault (`experience-vault.md`) is a living document that stores structured career history. It is the primary source of truth for all resume work.
+
+**Finding the vault:**
+- First, check the user's connected/mounted folder directly — it may be accessible as a local file
+- If it's in Google Drive and not locally accessible, use the `gdrive-universal-reader` skill to locate and read it
+
+When reading the vault:
 - Treat it as the primary source of truth for the user's experience
 - Look for high-impact bullets with metrics — these are gold
 - Note which skills and tools are listed; use these for keyword matching
@@ -92,6 +98,13 @@ When updating the vault (via `/update-profile`), extract from source resumes:
 - All accomplishments with metrics preserved exactly
 - Tools, technologies, and methodologies mentioned
 - Leadership scope (team size, budget, geographic reach)
+
+## Reading Resume Files from Google Drive
+
+When the user asks to work from a resume file stored in Google Drive (.pdf, .docx, .gdoc, or .md):
+- Use the `gdrive-universal-reader` skill — it handles adaptive search and format fallback
+- Do not use `google_drive_fetch` directly for non-.gdoc files; it will fail or return empty
+- The user's resumes may be stored as Google Docs even if they refer to them as PDFs
 
 ## ATS Optimization Rules (Summary)
 
