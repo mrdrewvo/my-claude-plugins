@@ -1,9 +1,15 @@
 {
   "name": "resume-tailor",
-  "version": "0.1.0",
-  "description": "Tailor your resume for any job — ATS-optimized, recruiter-ready, and tuned to what hiring managers actually want.",
+  "version": "0.1.1",
+  "description": "Tailor your resume for any job \u2014 ATS-optimized, recruiter-ready, and tuned to what hiring managers actually want.",
   "author": {
     "name": "Drew"
   },
-  "keywords": ["resume", "job search", "ATS", "career", "hiring"]
+  "keywords": [
+    "resume",
+    "job search",
+    "ATS",
+    "career",
+    "hiring"
+  ]
 }
