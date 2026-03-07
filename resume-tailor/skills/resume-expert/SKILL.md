@@ -84,8 +84,13 @@ This applies to every output file saved to the user's folder. Never omit the dat
 The experience vault (`experience-vault.md`) is a living document that stores structured career history. It is the primary source of truth for all resume work.
 
 **Finding the vault:**
-- First, check the user's connected/mounted folder directly — it may be accessible as a local file
-- If it's in Google Drive and not locally accessible, use the `gdrive-universal-reader` skill to locate and read it
+
+The vault is a local file — it lives in the user's mounted folder, not in Google Drive. To find it:
+1. List the `/sessions/` directory to discover the current session name
+2. Use Glob with pattern `**/experience-vault.md` starting from `/sessions/{session-name}/mnt/`
+3. Never hardcode a session name — it changes with every new Cowork session
+
+Do not use `gdrive-universal-reader` to find the vault. That skill is only for reading source resume documents (PDFs, .docx files) from Drive when building or updating the vault.
 
 When reading the vault:
 - Treat it as the primary source of truth for the user's experience
