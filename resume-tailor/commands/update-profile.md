@@ -12,11 +12,15 @@ The user's argument (if provided) is: $ARGUMENTS
 
 ## Step 1: Check for Existing Vault
 
-Search for an existing `experience-vault.md` file using Glob with pattern `**/experience-vault.md` in the connected folder (/sessions/awesome-intelligent-edison/mnt/).
+**Important:** The experience vault is a local file, not a Google Drive file. The Google Drive connector is read-only — Drive search/fetch is only used in Step 3 to pull in source resume documents. The vault is always read from and written to the user's locally mounted folder.
+
+To find the mounted folder, list the `/sessions/` directory to identify the current session name, then look in `/sessions/{session-name}/mnt/`. Never hardcode the session name — it changes with every new Cowork session.
+
+Search for an existing `experience-vault.md` file using Glob with pattern `**/experience-vault.md` in the mounted folder you just discovered.
 
 If it exists, read it in full. Note what's already captured — you'll add to it without duplicating.
 
-If it doesn't exist, you'll create it from scratch.
+If it doesn't exist, you'll create it from scratch in the mounted folder.
 
 ---
 
