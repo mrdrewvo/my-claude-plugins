@@ -1,39 +1,40 @@
 ---
 name: gdrive-universal-reader
 description: >
-  Read any file stored in Google Drive — .md, .pdf, .docx, or native Google Docs.
-  Use this skill whenever a user or another skill needs to access Drive files,
-  especially non-.gdoc formats that the Google Drive MCP can't natively fetch.
-  Invoke when someone says "read my file from Drive", "get my resume from Google
-  Drive", "pull up that markdown file", "grab my experience vault", or references
-  any Drive file by name or type. Also invoke this from within other skills (like
-  resume-tailor) when the workflow requires reading .md, .pdf, or .docx files
-  stored in Google Drive — the standard google_drive_fetch MCP call will fail for
-  these types. Use it proactively whenever Drive file access is needed and the
-  file is not a native Google Doc.
+  Read, write, or delete .md, .pdf, and .docx files. Use this skill whenever
+  a user or another skill needs to access files of these types — whether they're
+  stored in Google Drive or in the user's locally mounted folder. The Google Drive
+  MCP can only natively fetch .gdoc files; this skill handles the adaptive search
+  and format fallback for all other types. Invoke when someone says "read my file
+  from Drive", "get this document from Google Drive", "pull up that markdown file",
+  "save this as a PDF", "update this doc", "delete that file", or references
+  any .md, .pdf, or .docx file by name or location. Use it proactively whenever
+  file access, creation, or deletion is needed for these types.
 ---
 
-# Google Drive Universal File Reader
+# Google Drive Universal File Handler
 
-The Google Drive MCP (`google_drive_fetch`) works reliably for Google Docs (.gdoc).
-For uploaded file types (.md, .pdf, .docx), it either fails or returns empty.
-This skill provides an adaptive search strategy that locates files regardless of
-what format they're actually stored in — because users often don't know whether
-their file is a .docx, .gdoc, or .pdf.
+Handles read, write, and delete operations for `.md`, `.pdf`, and `.docx` files.
 
-**Key insight**: When a file isn't found in the format you searched for, don't stop.
-The file likely exists in a different format (e.g., what a user calls "my resume PDF"
-may actually be stored as a Google Doc). Always escalate to broader searches before
-concluding the file doesn't exist.
+**Read**: Supports files in Google Drive (via adaptive search + fallback) and in the user's locally mounted Cowork folder.
+
+**Write/Delete**: The Google Drive MCP connector is read-only — no write or delete tools exist for Drive. All write and delete operations target the user's **locally mounted folder** only.
 
 ---
 
-## Step 1: Search Drive with increasing breadth
+## Reading Files
+
+### From Google Drive
+
+The Google Drive MCP (`google_drive_fetch`) works reliably for Google Docs (.gdoc). For uploaded file types (.md, .pdf, .docx), it either fails or returns empty. Use the adaptive search strategy below.
+
+**Key insight**: When a file isn't found in the format you searched for, don't stop. The file likely exists in a different format (e.g., what a user calls "my resume PDF" may actually be stored as a Google Doc). Always escalate to broader searches before concluding the file doesn't exist.
+
+#### Step 1: Search Drive with increasing breadth
 
 Work through these queries in order, stopping when you find the file:
 
-### 1a. Target MIME type + name (specific)
-Start with the format the user mentioned:
+**1a. Target MIME type + name (specific)**
 
 | Format | MIME type |
 |--------|-----------|
@@ -42,120 +43,116 @@ Start with the format the user mentioned:
 | .md    | `text/markdown` — if no results, retry with `text/plain` and name contains `.md` |
 | .gdoc  | `application/vnd.google-apps.document` |
 
+**1b. Name only, no MIME filter (broader)**
+Drop the MIME type constraint if 1a returns nothing — catches files stored in an unexpected format.
+
+**1c. Known folder, no format filter**
+If you know the folder name, find its ID first, then list its contents:
 ```
-name contains 'resume' and mimeType = 'application/pdf'
+name = 'Folder Name' and mimeType = 'application/vnd.google-apps.folder'
+```
+Then: `'folder-id' in parents`
+
+**1d. Google Doc variant**
+Files users think of as .pdf or .docx are frequently stored as Google Docs. Search explicitly:
+```
+name contains 'filename' and mimeType = 'application/vnd.google-apps.document'
 ```
 
-### 1b. Name only, no MIME filter (broader)
-If 1a returns nothing, drop the MIME type constraint:
-```
-name contains 'resume'
-```
-This catches files stored in a different format than expected.
-
-### 1c. Known folder, no format filter (folder-based)
-If you know or can find the folder name, search within it without any MIME constraint:
-```
-'folder-id' in parents
-```
-To find the folder ID first:
-```
-name = 'Drew Resumes' and mimeType = 'application/vnd.google-apps.folder'
-```
-Then use that ID to list the folder contents.
-
-### 1d. Google Doc variant (always try this if no file found yet)
-Files users think of as .pdf or .docx are frequently stored as Google Docs.
-Search explicitly for a Google Doc version:
-```
-name contains 'resume' and mimeType = 'application/vnd.google-apps.document'
-```
-
-### 1e. Broad content search (last resort)
-If name is ambiguous, try a fullText search:
+**1e. Broad content search (last resort)**
 ```
 fullText contains 'keyword from file'
 ```
 
-**If none of the above find the file**, the file likely doesn't exist in Drive yet.
-Report what you searched and suggest the user upload it.
+If none of the above find the file, report what you searched and suggest the user upload it.
 
-**Critical**: Empty results from a MIME-specific search do NOT mean the Drive
-connector is broken. The connector is working — the file just isn't in that format.
-Always try broader searches before concluding there's a connectivity issue.
+**Critical**: Empty results from a MIME-specific search do NOT mean the Drive connector is broken. Always try broader searches before concluding there's a connectivity issue.
 
----
+#### Step 2: Retrieve the content from Drive
 
-## Step 2: Retrieve the content
+**Google Docs (.gdoc)**: Call `google_drive_fetch` with the document ID. Works reliably.
 
-### Google Docs (.gdoc)
-Call `google_drive_fetch` with the document ID. This works reliably.
+**Non-.gdoc files (.pdf, .docx, .md)**: Try `google_drive_fetch` first — occasionally works. If it returns empty or errors, use the local filesystem fallback below.
 
-### Non-.gdoc files (search found a .pdf, .docx, or .md)
-Try `google_drive_fetch` first — occasionally it works for binary files.
-If it returns empty or an error, proceed to the local filesystem.
+#### Local filesystem fallback (macOS + Google Drive for Desktop only)
 
-### Local filesystem fallback (macOS + Google Drive for Desktop only)
+This fallback only works when running on the user's Mac with Google Drive for Desktop installed and synced. It will **not** work in a Linux VM (Cowork) environment.
 
-This fallback only works when running on the user's Mac with Google Drive for
-Desktop installed and synced. It will NOT work in a Linux VM environment.
-
-Check if the sync folder exists:
 ```bash
 ls ~/Library/CloudStorage/ 2>/dev/null || echo "not found"
 ```
 
-If found, the base path is:
+Base path if found:
 ```
 ~/Library/CloudStorage/GoogleDrive-[email]/My Drive/
 ```
 
-Fallback paths to try in order:
-```bash
-~/Library/CloudStorage/GoogleDrive-*/My\ Drive/
-~/Google\ Drive/
-```
-
-Once you have the base path, locate the file:
+Locate the file:
 ```bash
 find ~/Library/CloudStorage/ -name "filename.ext" 2>/dev/null
 ```
 
-**Reading by file type:**
+### From the Local Mounted Folder (Cowork)
 
-- **.md files** — use the `Read` tool or `cat`. Treat as plain Markdown.
-- **.pdf files** — use `mcp__Desktop_Commander__read_file` with the local path.
-- **.docx files** — use `mcp__Desktop_Commander__read_file` with the local path.
+In Cowork, the user's folder is mounted at `/sessions/{session-name}/mnt/`. The session name changes with every new session — never hardcode it. Discover it dynamically:
+
+1. List `/sessions/` to find the current session name
+2. Use Glob with `**/filename.ext` starting from `/sessions/{session-name}/mnt/`
+
+**Reading by file type:**
+- **.md** — use the `Read` tool
+- **.pdf** — use `mcp__Desktop_Commander__read_file` or the `pdf` skill
+- **.docx** — use `mcp__Desktop_Commander__read_file` or the `docx` skill
 
 ---
 
-## Step 3: Handle failures gracefully
+## Writing Files
+
+All writes go to the user's locally mounted folder. The Google Drive connector is read-only.
+
+**Discover the mounted folder path first** (see above — list `/sessions/`, construct the path).
+
+| File type | How to write |
+|-----------|--------------|
+| `.md`     | Use the `Write` tool to create or overwrite. Use `Edit` for partial updates. |
+| `.pdf`    | Use `mcp__Desktop_Commander__write_pdf` or invoke the `pdf` skill. |
+| `.docx`   | Use `mcp__Desktop_Commander__write_file` (for new files) or invoke the `docx` skill. |
+
+Always confirm the destination path with the user before writing if it's not clear from context.
+
+---
+
+## Deleting Files
+
+All deletes target the user's locally mounted folder only.
+
+```bash
+rm /sessions/{session-name}/mnt/path/to/file.ext
+```
+
+If the delete fails with "Operation not permitted", use the `mcp__cowork__allow_cowork_file_delete` tool to request permission, then retry.
+
+**Always confirm with the user before deleting.** State the full filename and path before proceeding.
+
+---
+
+## Failure Handling
 
 | Situation | What to do |
 |-----------|------------|
-| Target MIME search returned nothing | Try broader searches (1b → 1c → 1d) before giving up |
-| Empty results from any Drive search | **Not** a connectivity failure — try a different query |
-| `google_drive_fetch` returns empty for non-.gdoc | Expected — try local filesystem |
-| Local sync folder not found | Environment may not be macOS with GDrive Desktop — offer Drive web URL |
-| File not found in Drive at all | Ask if the file has been uploaded or if the name might differ |
-| PDF is a scanned image (no extractable text) | Tell the user, suggest Drive's built-in OCR |
-| Drive MCP genuinely not connected | "Your Google Drive connector isn't connected. Add it in Cowork's connector settings." — only say this if ALL queries fail with a connection error, not just empty results |
+| Target MIME search returned nothing | Try broader searches (1b → 1c → 1d) |
+| `google_drive_fetch` returns empty for non-.gdoc | Expected — try local filesystem fallback |
+| Local sync folder not found | Environment may be Cowork (Linux VM) — check mounted folder instead |
+| File not found anywhere | Ask if the file has been uploaded or if the name might differ |
+| PDF is a scanned image (no extractable text) | Tell the user; suggest Drive's built-in OCR |
+| Drive MCP not connected | Only say this if ALL queries fail with a connection error — not just empty results |
+| Delete fails with permission error | Use `mcp__cowork__allow_cowork_file_delete` to request permission |
 
 ---
 
-## Step 4: Deliver what the user needs
-
-Once you have the content, focus on the actual task:
-- Summarize, extract key points, answer questions, compare — don't dump raw content
-  unless they asked for it
-- Tell the user what format the file was actually found in if it differed from what
-  they requested (e.g., "Your resume is stored as a Google Doc, not a .pdf")
-- For long files, summarize by default and offer to go deeper on specific sections
-
 ## Multi-file requests
 
-Run Drive searches in parallel where possible. Synthesize results together rather
-than presenting files one at a time.
+Run Drive searches in parallel where possible. For writes or deletes across multiple files, confirm the full list with the user before proceeding.
 
 ---
 
