@@ -90,7 +90,7 @@ The vault is a local file — it lives in the user's mounted folder, not in Goog
 2. Use Glob with pattern `**/experience-vault.md` starting from `/sessions/{session-name}/mnt/`
 3. Never hardcode a session name — it changes with every new Cowork session
 
-Do not use `gdrive-universal-reader` to find the vault. That skill is only for reading source resume documents (PDFs, .docx files) from Drive when building or updating the vault.
+Do not look for the vault in Google Drive. The vault is always local. If it doesn't exist yet, create it in the mounted folder via `/update-profile`.
 
 When reading the vault:
 - Treat it as the primary source of truth for the user's experience
@@ -104,12 +104,14 @@ When updating the vault (via `/update-profile`), extract from source resumes:
 - Tools, technologies, and methodologies mentioned
 - Leadership scope (team size, budget, geographic reach)
 
-## Reading Resume Files from Google Drive
+## Reading Files from Google Drive
 
-When the user asks to work from a resume file stored in Google Drive (.pdf, .docx, .gdoc, or .md):
-- Use the `gdrive-universal-reader` skill — it handles adaptive search and format fallback
+When the user asks to work from any file stored in Google Drive (.pdf, .docx, .gdoc, .md, or any other format):
+- Use the `gdrive-universal-reader` skill — it handles adaptive search and format fallback for any file type
 - Do not use `google_drive_fetch` directly for non-.gdoc files; it will fail or return empty
 - The user's resumes may be stored as Google Docs even if they refer to them as PDFs
+
+This applies to source resumes, reference documents, job descriptions saved in Drive, or anything else the user points to in Drive. `gdrive-universal-reader` is the general-purpose solution for reading any Drive file that the Google Drive MCP connector can't natively handle.
 
 ## ATS Optimization Rules (Summary)
 
