@@ -1,14 +1,14 @@
 ---
 description: Tailor your resume to a specific job description
-allowed-tools: Read, Write, Glob, Bash, WebFetch, WebSearch, Task, mcp__cowork__request_cowork_directory, mcp__cowork__present_files
+allowed-tools: Read, Write, Glob, Bash, WebFetch, WebSearch, Task, mcp__cowork__request_cowork_directory, mcp__cowork__present_files, mcp__c1fc4002-5f49-5f9d-a4e5-93c4ef5d6a75__google_drive_search, mcp__c1fc4002-5f49-5f9d-a4e5-93c4ef5d6a75__google_drive_fetch
 argument-hint: [job-description-url-or-paste-below]
 ---
 
 <!--
   PLUGIN CUSTOMIZATION
-  - To enable the Google Drive connector (reads native Google Docs), add your
-    installation's google_drive_search and google_drive_fetch tool names to
-    allowed-tools above (e.g., mcp__YOUR-UUID__google_drive_search).
+  - Google Drive tools are pre-configured for this installation
+    (mcp__c1fc4002-5f49-5f9d-a4e5-93c4ef5d6a75__google_drive_search / google_drive_fetch).
+  - If you're using a different installation, replace the UUID above with your own.
   - The local folder + paste fallback works for everyone out of the box.
 -->
 
@@ -38,7 +38,7 @@ Proceed to Phase 1. Store access mode: **LOCAL**.
 ---
 
 **Scenario B — Drive connector available, no local folder:**
-> "Your Google Drive is connected. One thing to know: the Drive connector reads native Google Docs only — it can't open `.docx` or `.pdf` files. Would you also like to connect a local folder (useful if you use Google Drive for Desktop)? Just say yes and I'll open the folder picker, or say no to continue with Drive only."
+> "Your Google Drive is connected. One thing to know: the Drive connector reads native Google Docs only — it can't open `.docx` or `.pdf` files directly. Would you also like to connect a local folder (useful if you use Google Drive for Desktop)? Just say yes and I'll open the folder picker, or say no to continue with Drive only."
 
 If the user says yes → call `mcp__cowork__request_cowork_directory` to open the folder picker, then confirm the mount succeeded with `ls mnt/ | head -5`. Store access mode: **BOTH**.
 
@@ -137,22 +137,53 @@ Look for files with "resume", "cv", or the user's name in the filename. Skip obv
   "
   ```
 
-If no resume files are found in `mnt/`, fall through to the Drive MCP step (if BOTH) or ask the user to paste.
+If no resume files are found in `mnt/`, fall through to the Drive search step (if BOTH) or ask the user to paste.
 
-**Step 2b (BOTH mode only) — Supplement with Drive MCP:**
-After reading local files, also search Google Drive for any Google Docs not present locally:
-- Use `google_drive_search` with query: `mimeType = 'application/vnd.google-apps.document' and (name contains 'resume' or name contains 'cv')`
-- Fetch results with `google_drive_fetch`
-- Merge content with what was loaded from local files, deduplicating as needed
+**Step 2b (BOTH mode only) — Search Drive for resumes:**
+
+After reading local files, search Google Drive for any resumes not present locally. Run all three searches:
+
+**Search 1 — Google Docs:**
+- Query: `mimeType = 'application/vnd.google-apps.document' and (name contains 'resume' or name contains 'cv')`
+- Fetch results with `google_drive_fetch` — returns content reliably for native Google Docs.
+
+**Search 2 — PDF resumes:**
+- Query: `mimeType = 'application/pdf' and (name contains 'resume' or name contains 'cv')`
+- Try `google_drive_fetch` for each result. This usually returns empty for uploaded PDFs in Cowork (Linux VM) — that's expected.
+
+**Search 3 — DOCX resumes:**
+- Query: `mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' and (name contains 'resume' or name contains 'cv')`
+- Try `google_drive_fetch` for each result. Same limitation applies.
+
+For any PDF or DOCX files found in Drive that returned empty content, tell the user:
+> "I found [filename] in your Drive but can't read it directly — the Drive connector only reads native Google Docs. To use this file, copy it into your connected local folder and I'll pick it up automatically."
+
+After the user adds files and re-mounts (or if they confirm they're already in the folder), re-run the local Glob from Step 1.
+
+Merge all successfully read content, deduplicating as needed.
 
 ---
 
 ### Mode: DRIVE_ONLY
 
-Use `google_drive_search` with query:
-`fullText contains 'resume' OR name contains 'resume' OR name contains 'CV'`
+Search Google Drive in three passes:
 
-Fetch the top 2–3 results with `google_drive_fetch`. Note: only native Google Docs are readable; `.docx` and `.pdf` files will appear in search but cannot be opened. If the user's resume is a `.docx` or `.pdf`, ask them to either open it in Google Docs or paste the content.
+**Pass 1 — Google Docs:**
+- Query: `mimeType = 'application/vnd.google-apps.document' and (name contains 'resume' or name contains 'cv')`
+- Fetch results with `google_drive_fetch`
+
+**Pass 2 — PDF resumes:**
+- Query: `mimeType = 'application/pdf' and (name contains 'resume' or name contains 'cv')`
+- Try `google_drive_fetch` for each result
+
+**Pass 3 — DOCX resumes:**
+- Query: `mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' and (name contains 'resume' or name contains 'cv')`
+- Try `google_drive_fetch` for each result
+
+If PDFs or DOCX files were found but returned empty content, tell the user:
+> "I found [filename] in your Drive but can't read it directly — the Drive connector only reads native Google Docs. To use it, either open it in Google Docs to convert it, or connect a local folder containing the file."
+
+If no readable resume content was found at all, fall back to asking the user to paste their resume or connect a local folder.
 
 ---
 
