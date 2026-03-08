@@ -6,7 +6,7 @@ Personal Claude Cowork plugin marketplace. Add this repo as a GitHub marketplace
 
 | Plugin | Version | Description |
 |--------|---------|-------------|
-| [resume-tailor](./resume-tailor/) | 0.1.5 | Tailor your resume for any job — ATS-optimized, recruiter-ready |
+| [resume-tailor](./resume-tailor/) | 0.1.6 | Tailor your resume for any job — ATS-optimized, recruiter-ready |
 | [gdrive-universal-reader](./gdrive-universal-reader/) | 1.0.0 | Read any file from Google Drive — .md, .pdf, .docx, or native Google Docs |
 
 ## Adding a New Plugin
