@@ -1,5 +1,8 @@
 # my-claude-plugins
 
+## ⚠️ NOTE
+Below is the archive of old plugins that possibly messed up my Claude Cowork setup.
+
 Personal Claude Cowork plugin marketplace. Add this repo as a GitHub marketplace source in Cowork to get all plugins below on any machine automatically.
 
 ## Plugins
